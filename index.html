@@ -1,0 +1,200 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>全能记账台</title>
+  <meta name="theme-color" content="#d4612b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="全能记账台" />
+  <link rel="manifest" href="app.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div>
+        <h1>全能记账台</h1>
+        <p class="subtitle">多账户 · 预算 · 统计 · 导入导出</p>
+      </div>
+      <div class="actions">
+        <button id="installBtn" class="ghost hidden">安装 APP</button>
+        <button id="exportJsonBtn" class="ghost">导出 JSON</button>
+        <button id="exportCsvBtn" class="ghost">导出 CSV</button>
+        <label class="import-label">
+          导入 JSON
+          <input id="importInput" type="file" accept="application/json" />
+        </label>
+      </div>
+    </header>
+    <p id="installHint" class="install-hint hidden"></p>
+
+    <section class="summary" id="summaryCards"></section>
+
+    <main class="grid">
+      <section class="panel">
+        <h2>新增记录</h2>
+        <form id="txForm" class="form-grid">
+          <label>
+            类型
+            <select id="txType" required>
+              <option value="expense">支出</option>
+              <option value="income">收入</option>
+              <option value="transfer">转账</option>
+            </select>
+          </label>
+          <label>
+            金额
+            <input id="txAmount" type="number" min="0" step="0.01" required />
+          </label>
+          <label>
+            日期
+            <input id="txDate" type="date" required />
+          </label>
+          <label>
+            账户
+            <select id="txAccount" required></select>
+          </label>
+          <label id="toAccountWrap" class="hidden">
+            转入账户
+            <select id="txToAccount"></select>
+          </label>
+          <label>
+            分类
+            <select id="txCategory" required></select>
+          </label>
+          <label>
+            标签（逗号分隔）
+            <input id="txTags" type="text" placeholder="如：餐饮,朋友聚会" />
+          </label>
+          <label class="full">
+            备注
+            <input id="txNote" type="text" maxlength="120" />
+          </label>
+          <button type="submit" id="txSubmit">新增记录</button>
+          <button type="button" id="txCancel" class="ghost hidden">取消编辑</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>筛选与搜索</h2>
+        <div class="form-grid">
+          <label>
+            起始日期
+            <input id="filterStart" type="date" />
+          </label>
+          <label>
+            结束日期
+            <input id="filterEnd" type="date" />
+          </label>
+          <label>
+            类型
+            <select id="filterType">
+              <option value="all">全部</option>
+              <option value="expense">支出</option>
+              <option value="income">收入</option>
+              <option value="transfer">转账</option>
+            </select>
+          </label>
+          <label>
+            账户
+            <select id="filterAccount"><option value="all">全部</option></select>
+          </label>
+          <label>
+            分类
+            <select id="filterCategory"><option value="all">全部</option></select>
+          </label>
+          <label>
+            关键词
+            <input id="filterKeyword" type="text" placeholder="备注或标签" />
+          </label>
+          <button id="filterReset" type="button" class="ghost">重置筛选</button>
+        </div>
+      </section>
+
+      <section class="panel full-width">
+        <div class="table-head">
+          <h2>交易流水</h2>
+          <span id="txCount"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日期</th>
+                <th>类型</th>
+                <th>账户</th>
+                <th>分类</th>
+                <th>金额</th>
+                <th>标签</th>
+                <th>备注</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="txTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>账户管理</h2>
+        <form id="accountForm" class="inline-form">
+          <input id="accountName" type="text" placeholder="账户名称" required />
+          <select id="accountType">
+            <option value="cash">现金</option>
+            <option value="bank">银行卡</option>
+            <option value="credit">信用账户</option>
+            <option value="wallet">电子钱包</option>
+          </select>
+          <input id="accountOpening" type="number" step="0.01" placeholder="期初余额" required />
+          <button type="submit">新增账户</button>
+        </form>
+        <ul id="accountList" class="list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>分类管理</h2>
+        <form id="categoryForm" class="inline-form">
+          <input id="categoryName" type="text" placeholder="分类名" required />
+          <select id="categoryType">
+            <option value="expense">支出分类</option>
+            <option value="income">收入分类</option>
+          </select>
+          <button type="submit">新增分类</button>
+        </form>
+        <ul id="categoryList" class="list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>预算管理</h2>
+        <form id="budgetForm" class="inline-form">
+          <input id="budgetMonth" type="month" required />
+          <select id="budgetCategory" required></select>
+          <input id="budgetAmount" type="number" min="0" step="0.01" placeholder="预算金额" required />
+          <button type="submit">设置预算</button>
+        </form>
+        <ul id="budgetList" class="list"></ul>
+      </section>
+
+      <section class="panel full-width">
+        <h2>统计分析</h2>
+        <div class="charts">
+          <div>
+            <h3>近 6 个月收支</h3>
+            <canvas id="trendCanvas" width="900" height="280"></canvas>
+          </div>
+          <div>
+            <h3>本月支出分类占比（Top 8）</h3>
+            <canvas id="categoryCanvas" width="900" height="280"></canvas>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
